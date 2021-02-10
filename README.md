@@ -3,6 +3,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/solid/community-server/badge.svg)](https://coveralls.io/github/solid/community-server)
 [![npm version](https://img.shields.io/npm/v/@solid/community-server)](https://www.npmjs.com/package/@solid/community-server)
 
+## Solid Test Suite Results
+* Not running the [WebID Provider tests](https://github.com/solid/webid-provider-tests) yet, but hopefully coming soon.
+* Now [passing 48 out of 61](https://github.com/michielbdejong/community-server/runs/1873231802#step:13:469) of the
+[Solid CRUD tests](https://github.com/solid/solid-crud-tests).
+* Not running the [WAC tests](https://github.com/solid/web-access-control-tests) yet, but hopefully coming soon.
+
 **An open and modular implementation of the
 [Solid](https://solidproject.org/)
 [specifications](https://solid.github.io/specification/)**
