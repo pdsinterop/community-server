@@ -14,9 +14,7 @@ cd solid-crud-tests
 # Commenting this out while we're working on https://github.com/solid/community-server/pull/597
 # Please uncomment before committing to master:
 # git checkout v2.0.3
-git checkout css-tests
-git pull
-git status
+git checkout 6528e65
 npm ci
 
 # Run tests
