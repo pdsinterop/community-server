@@ -2,6 +2,7 @@
 set -e
 
 # Start server
+npm ci
 npm start &
 PID=$!
 
