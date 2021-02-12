@@ -11,10 +11,7 @@ pushd test/tmp
 rm -rf solid-crud-tests
 git clone https://github.com/solid/solid-crud-tests
 cd solid-crud-tests
-# Commenting this out while we're working on https://github.com/solid/community-server/pull/597
-# Please uncomment before committing to master:
-# git checkout v2.0.3
-git checkout 6528e65
+git checkout v2.1.1
 npm ci
 
 # Run tests
