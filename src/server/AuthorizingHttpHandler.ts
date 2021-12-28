@@ -3,6 +3,7 @@ import type { CredentialsExtractor } from '../authentication/CredentialsExtracto
 import type { Authorizer } from '../authorization/Authorizer';
 import type { PermissionReader } from '../authorization/PermissionReader';
 import type { ModesExtractor } from '../authorization/permissions/ModesExtractor';
+import { AccessMode } from '../authorization/permissions/Permissions';
 import type { ResponseDescription } from '../http/output/response/ResponseDescription';
 import { getLoggerFor } from '../logging/LogUtil';
 import type { OperationHttpHandlerInput } from './OperationHttpHandler';
@@ -29,6 +30,26 @@ export interface AuthorizingHttpHandlerArgs {
    * Handler to call if the operation is authorized.
    */
   operationHandler: OperationHttpHandler;
+}
+
+function parent(path: string): string {
+  if (path == "http://localhost:3000/") {
+    return "http://localhost:3000/";
+  }
+  const parts = path.split('/');
+  if (parts[parts.length - 1 ] == '') {
+    // http://localhost:3000/foo/bar/
+    // ['http:', '', 'localhost:3000', 'foo', 'bar', ''] 
+    // ['http:', '', 'localhost:3000', 'foo'] 
+    // http://localhost:3000/foo/
+    return parts.slice(0, parts.length - 2).join('/') + '/';
+  } else {
+    // http://localhost:3000/foo/bar
+    // ['http:', '', 'localhost:3000', 'foo', 'bar'] 
+    // ['http:', '', 'localhost:3000', 'foo'] 
+    // http://localhost:3000/foo/
+    return parts.slice(0, parts.length - 1).join('/') + '/';
+  }
 }
 
 /**
@@ -58,27 +79,44 @@ export class AuthorizingHttpHandler extends OperationHttpHandler {
     this.operationHandler = args.operationHandler;
   }
 
+  private async doesntExist(path: string) {
+    return false; // FIXME: actually check this
+  }
+
   public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription | undefined> {
     const { request, operation } = input;
     const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
     this.logger.verbose(`Extracted credentials: ${JSON.stringify(credentials)}`);
-
-    const modes = await this.modesExtractor.handleSafe(operation);
-    this.logger.verbose(`Required modes are read: ${[ ...modes ].join(',')}`);
-
-    const permissionSet = await this.permissionReader.handleSafe({ credentials, identifier: operation.target });
-    this.logger.verbose(`Available permissions are ${JSON.stringify(permissionSet)}`);
-
-    try {
-      await this.authorizer.handleSafe({ credentials, identifier: operation.target, modes, permissionSet });
-      operation.permissionSet = permissionSet;
-    } catch (error: unknown) {
-      this.logger.verbose(`Authorization failed: ${(error as any).message}`);
-      throw error;
+    const method = operation.method;
+    let path = operation.target.path;
+    const body = ''; // FIXME: get the request body here
+    const basics: {[method: string]: Set<AccessMode>} = {
+      HEAD: new Set([AccessMode.read]),
+      GET: new Set([AccessMode.read]),
+      PUT: new Set([AccessMode.append, AccessMode.write]),
+      POST: new Set([AccessMode.append]),
+      DELETE: new Set([AccessMode.write]),
+      PATCH: ((body.indexOf('DELETE') == -1) ? new Set([AccessMode.append]) : new Set([AccessMode.append, AccessMode.write])),
     }
-
+    let permissionSet = await this.permissionReader.handleSafe({ credentials, identifier: operation.target });
+    let modes = basics[method];
+    await this.authorizer.handleSafe({ credentials, identifier: operation.target, modes, permissionSet });
+    if (['PUT', 'PATCH'].indexOf(method) !== -1) {
+      // if the target resource doesn't exist, you need add on its direct container
+      // if that container also doesn't exist yet, you need add access on its parent
+      // etc
+      while (await this.doesntExist(path)) {
+        path = parent(path);
+        permissionSet = await this.permissionReader.handleSafe({ credentials, identifier: { path } });
+        await this.authorizer.handleSafe({
+          credentials,
+          identifier: { path },
+          modes: new Set([AccessMode.append]),
+          permissionSet
+        });
+      }
+    }
     this.logger.verbose(`Authorization succeeded, calling source handler`);
-
     return this.operationHandler.handleSafe(input);
   }
 }
