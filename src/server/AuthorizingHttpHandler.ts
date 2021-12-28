@@ -33,7 +33,7 @@ export interface AuthorizingHttpHandlerArgs {
 }
 
 function parent(path: string): string {
-  if (path == "http://localhost:3000/") {
+  if (path == "http://localhost:3000/") { // FIXME: check against the actual base URL here
     return "http://localhost:3000/";
   }
   const parts = path.split('/');
