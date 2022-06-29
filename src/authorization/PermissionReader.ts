@@ -20,7 +20,12 @@ export interface PermissionReaderInput {
   modes: Set<AccessMode>;
 }
 
+export interface PermissionReaderOutput {
+  permissions: PermissionSet;
+  ancestors?: ResourceIdentifier[];
+}
+
 /**
  * Discovers the permissions of the given credentials on the given identifier.
  */
-export abstract class PermissionReader extends AsyncHandler<PermissionReaderInput, PermissionSet> {}
+export abstract class PermissionReader extends AsyncHandler<PermissionReaderInput, PermissionReaderOutput> {}

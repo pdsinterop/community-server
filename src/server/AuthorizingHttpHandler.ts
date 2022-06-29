@@ -7,6 +7,9 @@ import type { ResponseDescription } from '../http/output/response/ResponseDescri
 import { getLoggerFor } from '../logging/LogUtil';
 import type { OperationHttpHandlerInput } from './OperationHttpHandler';
 import { OperationHttpHandler } from './OperationHttpHandler';
+import type { IdentifierStrategy } from '../util/identifiers/IdentifierStrategy';
+import type { ResourceSet } from '../storage/ResourceSet';
+import { AccessMode } from '../authorization/permissions/Permissions';
 
 export interface AuthorizingHttpHandlerArgs {
   /**
@@ -65,13 +68,44 @@ export class AuthorizingHttpHandler extends OperationHttpHandler {
 
     const modes = await this.modesExtractor.handleSafe(operation);
     this.logger.verbose(`Required modes are read: ${[ ...modes ].join(',')}`);
-
-    const permissionSet = await this.permissionReader.handleSafe({ credentials, identifier: operation.target, modes });
-    this.logger.verbose(`Available permissions are ${JSON.stringify(permissionSet)}`);
+    const permissionReaderOutput = await this.permissionReader.handleSafe({ credentials, identifier: operation.target, modes });
+    this.logger.verbose(`Available permissions are ${JSON.stringify(permissionReaderOutput)}`);
 
     try {
-      await this.authorizer.handleSafe({ credentials, identifier: operation.target, modes, permissionSet });
-      operation.permissionSet = permissionSet;
+      // check for effect on resource itself
+      await this.authorizer.handleSafe({
+        credentials,
+        identifier: operation.target,
+        modes,
+        permissionSet: permissionReaderOutput.permissions,
+        onlyIfNotExist: false
+      });
+
+      // if that didn't throw an error, check for any ancestors that may get created on the fly:
+      const ancestors = permissionReaderOutput.ancestors;
+
+      // TODO: only do ancestor existence check if the operation itself
+      // requires create
+      // TODO: as soon as an ancestor is found that does exist, we can
+      // assume that its ancestors also exist, so no further
+      // checks are needed, so we can break from the loop.
+      if (ancestors) {
+        // FIXME: move this into a special modes extractor for ancestors
+        const ancestorModes = new Set<AccessMode>();
+        ancestorModes.add(AccessMode.write);
+        ancestorModes.add(AccessMode.create);
+        for (let i = 0; i < ancestors.length; i++) {
+          const ancestorPermissions = await this.permissionReader.handleSafe({ credentials, identifier: ancestors[i], modes: ancestorModes });
+          await this.authorizer.handleSafe({
+            credentials,
+            identifier: ancestors[i],
+            modes: ancestorModes,
+            permissionSet: ancestorPermissions.permissions,
+            onlyIfNotExist: true,
+          });
+        }
+      }
+      operation.permissionSet = permissionReaderOutput.permissions;
     } catch (error: unknown) {
       this.logger.verbose(`Authorization failed: ${(error as any).message}`);
       throw error;

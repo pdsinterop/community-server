@@ -31,7 +31,11 @@ export class PermissionBasedAuthorizer extends Authorizer {
   }
 
   public async handle(input: AuthorizerInput): Promise<void> {
-    const { credentials, modes, identifier, permissionSet } = input;
+    const { credentials, modes, identifier, permissionSet, onlyIfNotExist } = input;
+
+    if (onlyIfNotExist && await this.resourceSet.hasResource(identifier)) {
+      return
+    }
 
     const modeString = [ ...modes ].join(',');
     this.logger.debug(`Checking if ${credentials.agent?.webId} has ${modeString} permissions for ${identifier.path}`);

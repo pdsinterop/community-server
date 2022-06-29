@@ -1,7 +1,8 @@
 import type { AuxiliaryStrategy } from '../http/auxiliary/AuxiliaryStrategy';
+import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
 import { getLoggerFor } from '../logging/LogUtil';
 import { NotImplementedHttpError } from '../util/errors/NotImplementedHttpError';
-import type { PermissionReaderInput } from './PermissionReader';
+import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { PermissionSet } from './permissions/Permissions';
 
@@ -27,16 +28,16 @@ export class AuxiliaryReader extends PermissionReader {
     return this.resourceReader.canHandle(resourceAuth);
   }
 
-  public async handle(auxiliaryAuth: PermissionReaderInput): Promise<PermissionSet> {
+  public async handle(auxiliaryAuth: PermissionReaderInput): Promise<PermissionReaderOutput> {
     const resourceAuth = this.getRequiredAuthorization(auxiliaryAuth);
     this.logger.debug(`Checking auth request for ${auxiliaryAuth.identifier.path} on ${resourceAuth.identifier.path}`);
-    return this.resourceReader.handle(resourceAuth);
+    return { permissions: (await this.resourceReader.handle(resourceAuth) as PermissionSet)};
   }
 
-  public async handleSafe(auxiliaryAuth: PermissionReaderInput): Promise<PermissionSet> {
+  public async handleSafe(auxiliaryAuth: PermissionReaderInput): Promise<PermissionReaderOutput> {
     const resourceAuth = this.getRequiredAuthorization(auxiliaryAuth);
     this.logger.debug(`Checking auth request for ${auxiliaryAuth.identifier.path} to ${resourceAuth.identifier.path}`);
-    return this.resourceReader.handleSafe(resourceAuth);
+    return { permissions: (await this.resourceReader.handleSafe(resourceAuth) as PermissionSet)};
   }
 
   private getRequiredAuthorization(auxiliaryAuth: PermissionReaderInput): PermissionReaderInput {

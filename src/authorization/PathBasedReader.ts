@@ -1,7 +1,8 @@
+import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
 import { NotImplementedHttpError } from '../util/errors/NotImplementedHttpError';
 import { ensureTrailingSlash, trimTrailingSlashes } from '../util/PathUtil';
 
-import type { PermissionReaderInput } from './PermissionReader';
+import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { PermissionSet } from './permissions/Permissions';
 
@@ -30,9 +31,9 @@ export class PathBasedReader extends PermissionReader {
     await reader.canHandle(input);
   }
 
-  public async handle(input: PermissionReaderInput): Promise<PermissionSet> {
+  public async handle(input: PermissionReaderInput): Promise<PermissionReaderOutput> {
     const reader = this.findReader(input.identifier.path);
-    return reader.handle(input);
+    return { permissions: (await reader.handle(input) as PermissionSet) };
   }
 
   /**
