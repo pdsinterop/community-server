@@ -1,6 +1,5 @@
 import { CredentialGroup } from '../authentication/Credentials';
 import type { AuxiliaryIdentifierStrategy } from '../http/auxiliary/AuxiliaryIdentifierStrategy';
-import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
 import type { AccountSettings, AccountStore } from '../identity/interaction/email-password/storage/AccountStore';
 import { getLoggerFor } from '../logging/LogUtil';
 import { createErrorMessage } from '../util/errors/ErrorUtil';
@@ -8,7 +7,6 @@ import { NotImplementedHttpError } from '../util/errors/NotImplementedHttpError'
 import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { AclPermission } from './permissions/AclPermission';
-import type { PermissionSet } from './permissions/Permissions';
 
 /**
  * Allows control access if the request is being made by the owner of the pod containing the resource.

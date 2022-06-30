@@ -1,5 +1,4 @@
 import type { CredentialGroup } from '../authentication/Credentials';
-import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
 import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { Permission, PermissionSet } from './permissions/Permissions';
@@ -29,6 +28,6 @@ export class AllStaticReader extends PermissionReader {
         result[key] = this.permissions;
       }
     }
-    return { permissions:result };
+    return { permissions: result };
   }
 }
