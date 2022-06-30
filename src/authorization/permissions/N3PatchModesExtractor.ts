@@ -45,7 +45,11 @@ export class N3PatchModesExtractor extends ModesExtractor {
     // When ?insertions is non-empty, servers MUST (also) treat the request as an Append operation.
     if (inserts.length > 0) {
       accessModes.add(AccessMode.append);
+      // require Write on c/r and Append-or-Write on c/
+      // for PATCH-to-create c/r
+      // ref https://github.com/solid-contrib/test-suite/issues/146
       if (!await this.resourceSet.hasResource(target)) {
+        accessModes.add(AccessMode.write);
         accessModes.add(AccessMode.create);
       }
     }

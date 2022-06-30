@@ -20,6 +20,11 @@ export interface AuthorizerInput {
    * Permissions that are available for the request.
    */
   permissionSet: PermissionSet;
+  /**
+   * Only perform the check if the resource does not exist
+   * Used for ancestor creation checks
+   */
+  onlyIfNotExist?: boolean;
 }
 
 /**

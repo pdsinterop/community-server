@@ -1,5 +1,6 @@
 import type { CredentialGroup } from '../authentication/Credentials';
-import type { PermissionReaderInput } from './PermissionReader';
+import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
+import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { Permission, PermissionSet } from './permissions/Permissions';
 
@@ -21,13 +22,13 @@ export class AllStaticReader extends PermissionReader {
     });
   }
 
-  public async handle({ credentials }: PermissionReaderInput): Promise<PermissionSet> {
+  public async handle({ credentials }: PermissionReaderInput): Promise<PermissionReaderOutput> {
     const result: PermissionSet = {};
     for (const [ key, value ] of Object.entries(credentials) as [CredentialGroup, Permission][]) {
       if (value) {
         result[key] = this.permissions;
       }
     }
-    return result;
+    return { permissions:result };
   }
 }

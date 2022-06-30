@@ -1,10 +1,11 @@
 import { CredentialGroup } from '../authentication/Credentials';
 import type { AuxiliaryIdentifierStrategy } from '../http/auxiliary/AuxiliaryIdentifierStrategy';
+import { ResourceIdentifier } from '../http/representation/ResourceIdentifier';
 import type { AccountSettings, AccountStore } from '../identity/interaction/email-password/storage/AccountStore';
 import { getLoggerFor } from '../logging/LogUtil';
 import { createErrorMessage } from '../util/errors/ErrorUtil';
 import { NotImplementedHttpError } from '../util/errors/NotImplementedHttpError';
-import type { PermissionReaderInput } from './PermissionReader';
+import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { AclPermission } from './permissions/AclPermission';
 import type { PermissionSet } from './permissions/Permissions';
@@ -24,23 +25,25 @@ export class OwnerPermissionReader extends PermissionReader {
     this.aclStrategy = aclStrategy;
   }
 
-  public async handle(input: PermissionReaderInput): Promise<PermissionSet> {
+  public async handle(input: PermissionReaderInput): Promise<PermissionReaderOutput> {
     try {
       await this.ensurePodOwner(input);
     } catch (error: unknown) {
       this.logger.debug(`No pod owner Control permissions: ${createErrorMessage(error)}`);
-      return {};
+      return { permissions: {}};
     }
     this.logger.debug(`Granting Control permissions to owner on ${input.identifier.path}`);
 
-    return { [CredentialGroup.agent]: {
-      read: true,
-      write: true,
-      append: true,
-      create: true,
-      delete: true,
-      control: true,
-    } as AclPermission };
+    return {
+      permissions: { [CredentialGroup.agent]: {
+        read: true,
+        write: true,
+        append: true,
+        create: true,
+        delete: true,
+        control: true,
+      } as AclPermission }
+    };
   }
 
   /**

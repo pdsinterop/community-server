@@ -1,6 +1,6 @@
 import type { CredentialGroup } from '../authentication/Credentials';
 import { UnionHandler } from '../util/handlers/UnionHandler';
-import type { PermissionReader } from './PermissionReader';
+import type { PermissionReader, PermissionReaderOutput } from './PermissionReader';
 import type { Permission, PermissionSet } from './permissions/Permissions';
 
 /**
@@ -12,14 +12,18 @@ export class UnionPermissionReader extends UnionHandler<PermissionReader> {
     super(readers);
   }
 
-  protected async combine(results: PermissionSet[]): Promise<PermissionSet> {
+  protected async combine(results: PermissionReaderOutput[]): Promise<PermissionReaderOutput> {
     const result: PermissionSet = {};
+    let ancestors;
     for (const permissionSet of results) {
-      for (const [ key, value ] of Object.entries(permissionSet) as [ CredentialGroup, Permission | undefined ][]) {
+      for (const [ key, value ] of Object.entries(permissionSet.permissions) as [ CredentialGroup, Permission | undefined ][]) {
         result[key] = this.applyPermissions(value, result[key]);
+        if (permissionSet.ancestors) {
+          ancestors = permissionSet.ancestors;
+        }
       }
     }
-    return result;
+    return { permissions: result, ancestors };
   }
 
   /**

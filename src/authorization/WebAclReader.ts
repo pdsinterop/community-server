@@ -14,7 +14,7 @@ import type { IdentifierStrategy } from '../util/identifiers/IdentifierStrategy'
 import { readableToQuads } from '../util/StreamUtil';
 import { ACL, RDF } from '../util/Vocabularies';
 import type { AccessChecker } from './access/AccessChecker';
-import type { PermissionReaderInput } from './PermissionReader';
+import type { PermissionReaderInput, PermissionReaderOutput } from './PermissionReader';
 import { PermissionReader } from './PermissionReader';
 import type { AclPermission } from './permissions/AclPermission';
 import { AclMode } from './permissions/AclPermission';
@@ -40,7 +40,7 @@ export class WebAclReader extends PermissionReader {
 
   private readonly aclStrategy: AuxiliaryIdentifierStrategy;
   private readonly aclStore: ResourceStore;
-  private readonly identifierStrategy: IdentifierStrategy;
+  public readonly identifierStrategy: IdentifierStrategy;
   private readonly accessChecker: AccessChecker;
 
   public constructor(aclStrategy: AuxiliaryIdentifierStrategy, aclStore: ResourceStore,
@@ -52,13 +52,26 @@ export class WebAclReader extends PermissionReader {
     this.accessChecker = accessChecker;
   }
 
+  // FIXME: this utility function is unrelated to permission
+  // so should be moved elsewhere by editing the componentjs config:
+  private getAncestors(identifier: ResourceIdentifier): ResourceIdentifier[] {
+    let ancestor = this.identifierStrategy.getParentContainer(identifier);
+    let ancestors: ResourceIdentifier[] = [];
+    ancestors.push(ancestor);
+    while(!this.identifierStrategy.isRootContainer(ancestor)) {
+      ancestor = this.identifierStrategy.getParentContainer(ancestor);
+      ancestors.push(ancestor);
+    }
+    return ancestors;
+  }
+
   /**
    * Checks if an agent is allowed to execute the requested actions.
    * Will throw an error if this is not the case.
    * @param input - Relevant data needed to check if access can be granted.
    */
   public async handle({ identifier, credentials, modes }: PermissionReaderInput):
-  Promise<PermissionSet> {
+  Promise<PermissionReaderOutput> {
     // Determine the required access modes
     this.logger.debug(`Retrieving permissions of ${credentials.agent?.webId} for ${identifier.path}`);
 
@@ -95,7 +108,7 @@ export class WebAclReader extends PermissionReader {
       permissions[CredentialGroup.public]!.delete =
         permissions[CredentialGroup.public]!.write && parentPermissions[CredentialGroup.public]!.write;
     }
-    return permissions;
+    return { permissions, ancestors: this.getAncestors(identifier) };
   }
 
   /**
