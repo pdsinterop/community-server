@@ -1,5 +1,5 @@
-ALICE_WEBID=http://thirdparty/profile/card#me
-SERVER_ROOT=http://thirdparty
+ALICE_WEBID=http://thirdparty:3000/profile/card#me
+SERVER_ROOT=http://thirdparty:3000
 USERNAME=alice
 PASSWORD=123
 ACL_CACHE_TIME=5

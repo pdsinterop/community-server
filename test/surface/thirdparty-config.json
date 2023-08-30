@@ -1,7 +1,7 @@
 {
   "root": "./data",
   "port": "443",
-  "serverUri": "https://thirdparty",
+  "serverUri": "http://thirdparty:3000",
   "webid": true,
   "mount": "/",
   "configPath": "./config",

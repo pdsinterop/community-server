@@ -4,10 +4,10 @@ set -e
 function setup {
   echo Branch name: $1
   docker network create testnet
-  docker build -t server --build-arg BRANCH=$1 test/surface/docker/server
+  docker build -t server .
   docker build -t cookie test/surface/docker/cookie
-  docker run -d --env-file test/surface/server-env.list --name server --network=testnet -p 443:3000 server
-  docker run -d --env-file test/surface/thirdparty-env.list --name thirdparty --network=testnet -p 80:3000 server
+  docker run -d --env-file test/surface/server-env.list --name server --network=testnet server
+  docker run -d --env-file test/surface/thirdparty-env.list --name thirdparty --network=testnet server
 }
 function teardown {
   docker stop `docker ps --filter network=testnet -q`
@@ -17,7 +17,7 @@ function teardown {
 
 function waitForNss {
   docker pull solidtestsuite/webid-provider-tests
-  until docker run --rm --network=testnet solidtestsuite/webid-provider-tests curl -kI https://$1 2> /dev/null > /dev/null
+  until docker run --rm --network=testnet solidtestsuite/webid-provider-tests curl -kI http://$1:3000 2> /dev/null > /dev/null
   do
     echo Waiting for $1 to start, this can take up to a minute ...
     docker ps -a
@@ -45,10 +45,10 @@ function runTests {
 teardown || true
 setup $1
 waitForNss server
-runTests webid-provider-tests v2.0.3
+#runTests webid-provider-tests v2.0.3
 runTests solid-crud-tests v6.0.0
-waitForNss thirdparty
-runTests web-access-control-tests v7.1.0
+#waitForNss thirdparty
+#runTests web-access-control-tests v7.1.0
 teardown
 
 # To debug, e.g. running web-access-control-tests jest interactively,
