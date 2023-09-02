@@ -1,6 +1,0 @@
-WEBID_ALICE=http://server:3000/profile/card#me
-OIDC_ISSUER_ALICE=http://server:3000
-STORAGE_ROOT_ALICE=http://server:3000/
-WEBID_BOB=http://thirdparty:3000/profile/card#me
-OIDC_ISSUER_BOB=http://thirdparty:3000
-STORAGE_ROOT_BOB=http://thirdparty:3000/

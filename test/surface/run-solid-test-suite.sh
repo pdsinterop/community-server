@@ -3,7 +3,7 @@ set -e
 
 function setup {
   npm ci
-  npm start &> '/dev/null' &
+  npm start -- --detectOpenHandles &> '/dev/null' &
   git clone https://github.com/solid-contrib/solid-crud-tests.git
   cd solid-crud-tests
   git fetch origin
@@ -17,19 +17,27 @@ function setup {
   #git checkout run-against-css
   git pull
   npm ci
+  rm run-against-css.sh
+  cp ../test/surface/web-access-control-tests.sh run-against-css.sh
+  chmod +x run-against-css.sh
   cd ..
 }
 
+function runThirdParty {
+  npm start -- --port 3001 --detectOpenHandles &
+}
+
 function waitForCss {
-  until curl -kI http://localhost:3000 2> /dev/null
+  until curl -kI http://localhost:$1 2> /dev/null
   do
-    echo Waiting for CSS to start, this can take up to a minute ...
+    echo Waiting for CSS to start on port $1, this can take up to a minute ...
     sleep 1
   done
 }
 
 function teardown {
   kill $(lsof -t -i :3000)
+  kill $(lsof -t -i :3001)
   rm -rf solid-crud-tests web-access-control-tests
 }
 
@@ -42,8 +50,10 @@ function runTests {
 # ...
 teardown || true
 setup
-waitForCss
-runTests solid-crud-tests
+waitForCss 3000
+#runTests solid-crud-tests
+runThirdParty
+waitForCss 3001
 runTests web-access-control-tests
 teardown
 
