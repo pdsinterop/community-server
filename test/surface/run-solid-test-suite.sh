@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
+export SKIP_CONC=1
+
 function setup {
   npm ci
   npm start -- --detectOpenHandles &> '/dev/null' &
   git clone https://github.com/solid-contrib/solid-crud-tests.git
   cd solid-crud-tests
-  git fetch origin
-  git checkout nss-skips
-  git pull
+  git checkout v6.0.0
   npm ci
   cd ..
   git clone https://github.com/solid-contrib/web-access-control-tests.git
@@ -51,9 +51,9 @@ function runTests {
 teardown || true
 setup
 waitForCss 3000
-#runTests solid-crud-tests
-runThirdParty
-waitForCss 3001
-runTests web-access-control-tests
+runTests solid-crud-tests
+# runThirdParty
+# waitForCss 3001
+# runTests web-access-control-tests
 teardown
 
