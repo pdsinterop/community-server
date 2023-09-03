@@ -1,20 +1,22 @@
+
 name: CI
 
 on:
   push:
-    branches:
-      - 'main'
-      - 'versions/*'
-    tags:
-      - 'v*'
+    branches: [ main ]
   pull_request:
-    branches:
-      - '**'
+    branches: [ main ]
 
 jobs:
-  solid-test-suite:
-    runs-on: ubuntu-latest
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
     steps:
-      - name: solid test suite
-      - uses: actions/checkout@v3
-      - run: bash ./test/surface/run-solid-test-suite.sh
+    - uses: actions/checkout@v2
+    # Run the Solid test-suite
+    - run: bash ./test/surface/run-solid-test-suite.sh
