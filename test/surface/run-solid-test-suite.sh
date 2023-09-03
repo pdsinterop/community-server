@@ -5,6 +5,8 @@ export SKIP_CONC=1
 
 function setup {
   npm ci
+  rm node_modules/@solid/access-token-verifier/dist/algorithm/verifySolidAccessTokenIssuer.js
+  cp test/surface/verifySolidAccessTokenIssuer.js node_modules/@solid/access-token-verifier/dist/algorithm/verifySolidAccessTokenIssuer.js
   npm start -- --detectOpenHandles &> '/dev/null' &
   git clone https://github.com/solid-contrib/solid-crud-tests.git
   cd solid-crud-tests
@@ -23,10 +25,6 @@ function setup {
   cd ..
 }
 
-function runThirdParty {
-  npm start -- --port 3001 --detectOpenHandles &
-}
-
 function waitForCss {
   until curl -kI http://localhost:$1 2> /dev/null
   do
@@ -37,7 +35,6 @@ function waitForCss {
 
 function teardown {
   kill $(lsof -t -i :3000)
-  kill $(lsof -t -i :3001)
   rm -rf solid-crud-tests web-access-control-tests
 }
 
@@ -52,8 +49,6 @@ teardown || true
 setup
 waitForCss 3000
 runTests solid-crud-tests
-runThirdParty
-waitForCss 3001
-# runTests web-access-control-tests
+runTests web-access-control-tests
 teardown
 
