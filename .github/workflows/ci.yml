@@ -16,4 +16,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: solid test suite
-        run: bash ./test/surface/run-solid-test-suite.sh
+      - uses: actions/checkout@v3
+      - run: bash ./test/surface/run-solid-test-suite.sh
