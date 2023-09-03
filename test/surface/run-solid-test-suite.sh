@@ -52,8 +52,8 @@ teardown || true
 setup
 waitForCss 3000
 runTests solid-crud-tests
-# runThirdParty
-# waitForCss 3001
+runThirdParty
+waitForCss 3001
 # runTests web-access-control-tests
 teardown
 
