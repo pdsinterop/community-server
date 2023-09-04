@@ -8,7 +8,7 @@ function setup {
   npm start -- --detectOpenHandles &> '/dev/null' &
   git clone https://github.com/solid-contrib/solid-crud-tests.git
   cd solid-crud-tests
-  git checkout v6.0.0
+  git checkout css-skips
   npm ci
   cd ..
   git clone https://github.com/solid-contrib/web-access-control-tests.git
@@ -52,8 +52,8 @@ teardown || true
 setup
 waitForCss 3000
 runTests solid-crud-tests
-# runThirdParty
-# waitForCss 3001
+runThirdParty
+waitForCss 3001
 # runTests web-access-control-tests
 teardown
 
