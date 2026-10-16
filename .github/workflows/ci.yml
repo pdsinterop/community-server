@@ -17,6 +17,6 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
     # Run the Solid test-suite
     - run: bash ./test/surface/run-solid-test-suite.sh
